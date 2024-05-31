@@ -35,6 +35,8 @@ local spawnTimer = 0
 
 local lastY = -PIPE_HEIGHT + math.random(80) + 20
 
+local scrolling = true
+
 function love.load()
   love.graphics.setDefaultFilter('nearest', 'nearest')
 
@@ -65,30 +67,42 @@ function love.keyboard.wasPressed(key)
 end
 
 function love.update(dt)
-  backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
+  if scrolling then
+    backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
 
-  groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % GROUD_LOOPING_POINT
+    groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % GROUD_LOOPING_POINT
 
-  spawnTimer = spawnTimer + dt
+    spawnTimer = spawnTimer + dt
 
-  if spawnTimer > 2 then
-    local y = math.max(-PIPE_HEIGHT + 10, math.min(lastY + math.random(-20, 20), VIRTUAL_HEIGHT - 90 -PIPE_HEIGHT))
+    if spawnTimer > 2 then
+      local y = math.max(-PIPE_HEIGHT + 10, math.min(lastY + math.random(-20, 20), VIRTUAL_HEIGHT - 90 -PIPE_HEIGHT))
 
-    lastY = y
+      lastY = y
 
-    table.insert(pipePairs, PipePair(y))
-    spawnTimer = 0;
-  end
+      table.insert(pipePairs, PipePair(y))
+      spawnTimer = 0;
+    end
 
-  bird:update(dt)
+    bird:update(dt)
 
-  for k, pipe in pairs(pipePairs) do
-    pipe:update(dt)
-  end
+    for k, pair in pairs(pipePairs) do
+      pair:update(dt)
 
-  for k, pair in pairs(pipePairs) do
-    if pair.remove then
-      table.remove(pipePairs, k)
+      for l, pipe in pairs(pair.pipes) do
+        if bird:collides(pipe) then
+          scrolling = false
+        end
+      end
+
+      if pair.x < -PIPE_WIDTH then
+        pair.remove = true
+      end
+    end
+
+    for k, pair in pairs(pipePairs) do
+      if pair.remove then
+        table.remove(pipePairs, k)
+      end
     end
   end
 
@@ -100,8 +114,8 @@ function love.draw()
 
   love.graphics.draw(background, -backgroundScroll, 0)
 
-  for k, pipe in pairs(pipePairs) do
-    pipe:render()
+  for k, pair in pairs(pipePairs) do
+    pair:render()
   end
 
   love.graphics.draw(ground, -groundScroll, VIRTUAL_HEIGHT - 16)
