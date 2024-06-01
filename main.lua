@@ -11,6 +11,7 @@ require 'PipePair'
 require 'StateMachine'
 require 'states/BaseState'
 require 'states/PlayState'
+require 'states/ScoreState'
 require 'states/TitleScreenState'
 
 WINDOW_WIDTH = 1280
@@ -32,16 +33,6 @@ local BACKGROUND_LOOPING_POINT = 413
 
 local GROUD_LOOPING_POINT = 514
 
-local bird = Bird()
-
-local pipePairs = {}
-
-local spawnTimer = 0
-
-local lastY = -PIPE_HEIGHT + math.random(80) + 20
-
-local scrolling = true
-
 function love.load()
   love.graphics.setDefaultFilter('nearest', 'nearest')
 
@@ -62,6 +53,7 @@ function love.load()
   gStateMachine = StateMachine {
     ['title'] = function() return TitleScreenState() end,
     ['play'] = function() return PlayState() end,
+    ['score'] = function() return ScoreState() end,
   }
   gStateMachine:change('title')
 
